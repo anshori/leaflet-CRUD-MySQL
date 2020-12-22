@@ -202,5 +202,78 @@ function _displayMapEditPolygon (divtarget,objectgid) {
 	function _onEachFeature (feature, layer) {
 		drawnItems.addLayer(layer);
 		map.fitBounds(drawnItems.getBounds());
+		if (feature.properties) {
+      layer.on({
+				click: function (e) {
+					var notes = feature.properties.notes;
+          _buildDigitiseModalBox('modalform','UPDATE POLYGON',notes);
+        }
+      });
+    }
+	}
+
+	function _buildDigitiseModalBox (targetmodal,context,notes) {
+		targetmodal = typeof targetmodal !== 'undefined' ? targetmodal : 'modalbox';
+		context = typeof context !== 'undefined' ? context : 'UPDATE POLYGON';
+		notes = typeof notes !== 'undefined' ? notes : '';
+		
+		var htmlformcomponent = "" +
+				"<input type='hidden' id='command' name='command' value='"+context+"'/>" +
+				"<table id='feature_data' class='table table-condensed table-bordered table-striped'>" +
+					"<thead>" +
+						"<tr>" +
+							"<th colspan='2' class='text-center'>Feature Data</th>" +
+						"</tr>" +
+					"</thead>" +
+					"<tbody>" +
+						"<tr>" +
+							"<td class=''>Notes</td>" +
+							"<td class='text-center'><input type='text' id='notes' name='notes' class='form-control' value='"+notes+"'/></td>" +
+						"</tr>" +
+					"</tbody>" +
+				"</table>" +
+			"";
+		var modalfooter = "" +
+			"<button type='button' id='canceldigitize' class='btn btn-default' data-dismiss='modal'><i class='fa fa-power-off'></i>&nbsp;Cancel</button>" +
+			"<button type='button' id='saveattributedata' class='btn btn-primary'><i class='fa fa-floppy-o'></i>&nbsp;Save</button>" +
+			"";
+		$("#form_modal_body").empty();
+		$("#form_modal_footer").empty().html(modalfooter);
+		$("#form_modal_body").removeClass().addClass('modal-body');
+		$("#form_modal_size").removeClass().addClass('modal-dialog');
+		$("#form_modal_body").html(htmlformcomponent);
+		$("#form_modal_label").html("<i class='fa fa-pencil'></i>&nbsp;"+context+"");
+		
+		$('#'+targetmodal+'').modal({show:true, backdrop:'static', keyboard:false});
+	}
+
+	$("#modalform").on('shown.bs.modal', function(){
+    _activateFeatureSave();
+	});
+	
+	function _activateFeatureSave () {
+		$("#saveattributedata").on('click', function(evt){
+			evt.stopImmediatePropagation();
+			var gid = $("#editobjectgid").val();
+			var noteString = $('#notes').val();
+			$.ajax({
+				url: "./dataservice/update_data_polygon.php",
+				method: "GET",
+				dataType: "json",
+				data: {gid:gid, command:"UPDATE", notes:noteString},
+				success: function (data) {
+					if (data.response=="200") {
+						$("#modalform").modal('hide');
+						_displayMapRead('app');
+					} else {
+						$("#modalform").modal('hide');
+						console.log('Failed to save.');
+					}
+				},
+				username: null,
+				password: null
+			});
+			return false;
+		});
 	}
 }
