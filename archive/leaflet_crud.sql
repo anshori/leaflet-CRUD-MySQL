@@ -54,7 +54,7 @@ CREATE TABLE `data_point` (
 CREATE TABLE `data_polygon` (
   `gid` int(11) NOT NULL,
   `notes` varchar(255) NOT NULL,
-  `geom` geometry NOT NULL,
+  `geom` geometry NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
